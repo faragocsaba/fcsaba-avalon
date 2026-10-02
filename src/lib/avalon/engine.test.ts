@@ -50,6 +50,19 @@ describe("engine", () => {
     expect(() => applyAction(v2, "p0", { type: "vote", approve: true }, rand)).toThrow(GameError);
   });
 
+  it("lists yes and no voters by name in the log", () => {
+    let g = game(5);
+    const leader = g.players[g.leader]!.id;
+    g = applyAction(g, leader, { type: "propose", team: ["p0", "p1"] }, rand);
+    g = applyAction(g, "p3", { type: "vote", approve: false }, rand);
+    g = applyAction(g, "p1", { type: "vote", approve: true }, rand);
+    g = applyAction(g, "p4", { type: "vote", approve: false }, rand);
+    g = applyAction(g, "p0", { type: "vote", approve: true }, rand);
+    g = applyAction(g, "p2", { type: "vote", approve: false }, rand);
+
+    expect(g.log.at(-1)).toBe("Szavazás: 2 igen (P0, P1), 3 nem (P2, P3, P4) – elutasítva.");
+  });
+
   it("good players cannot fail quests; 5 rejections ends game", () => {
     let g = game(5);
     for (let r = 0; r < 5; r++) {

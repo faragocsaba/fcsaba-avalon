@@ -276,7 +276,12 @@ export function applyAction(g: Game, actor: string, action: Action, rand: () => 
         votes,
         approved,
       };
-      const log = [...g.log, `Szavazás: ${yes} igen, ${n - yes} nem – ${approved ? "elfogadva" : "elutasítva"}.`];
+      const yesNames = g.players.filter((p) => votes[p.id]).map((p) => p.name).join(", ");
+      const noNames = g.players.filter((p) => votes[p.id] === false).map((p) => p.name).join(", ");
+      const log = [
+        ...g.log,
+        `Szavazás: ${yes} igen (${yesNames}), ${n - yes} nem (${noNames}) – ${approved ? "elfogadva" : "elutasítva"}.`,
+      ];
       if (approved) return { ...g, votes, lastVote: record, phase: "quest", cards: {}, rejections: 0, log };
       const rejections = g.rejections + 1;
       if (rejections >= 5)
