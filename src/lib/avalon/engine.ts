@@ -423,7 +423,7 @@ export function viewFor(g: Game, me: string): PlayerView {
     phase: g.phase,
     players: g.players,
     hostId: g.hostId,
-    settings: g.settings,
+    settings: { ...defaultSettings(), ...g.settings },
     leader: g.leader,
     quest: g.quest,
     results: g.results,

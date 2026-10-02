@@ -16,6 +16,8 @@ const codeSchema = z.string().trim().toUpperCase().regex(/^[A-Z]{4}$/, "Érvény
 const tokenSchema = z.string().min(20).max(100);
 
 const settingsSchema = z.object({
+  merlin: z.boolean(),
+  assassin: z.boolean(),
   percival: z.boolean(),
   morgana: z.boolean(),
   mordred: z.boolean(),

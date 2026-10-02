@@ -179,7 +179,7 @@ function Lobby({ view, send, busy }: Props) {
       </Panel>
 
       <Panel title="Karakterek">
-        <p className="mb-3 text-sm text-muted-foreground">Merlin és az Orgyilkos mindig játékban van.</p>
+        <p className="mb-3 text-sm text-muted-foreground">Merlin és az Orgyilkos kikapcsolásával a játék Resistance-szabályokkal megy.</p>
         <div className="space-y-3">
           {opts.map((o) => (
             <label key={o.key} className="flex items-start justify-between gap-4">
