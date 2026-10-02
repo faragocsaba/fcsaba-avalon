@@ -35,7 +35,10 @@ function Home() {
     setBusy(true);
     try {
       const res = kind === "create" ? await create({ data: { name } }) : await join({ data: { name, code } });
-      if (!res.ok) return toast.error(res.error);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       saveName(name.trim());
       saveToken(res.data.code, res.data.token);
       navigate({ to: "/room/$code", params: { code: res.data.code } });

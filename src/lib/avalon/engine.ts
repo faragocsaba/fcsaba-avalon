@@ -86,7 +86,7 @@ export const TEAM_SIZES: Record<number, number[]> = {
 };
 
 export const EVIL_ROLES: Role[] = ["assassin", "morgana", "mordred", "oberon", "minion"];
-export const isEvil = (r: Role) => EVIL_ROLES.includes(r);
+export const isEvil = (r: Role | undefined) => !!r && EVIL_ROLES.includes(r);
 
 export function failsNeeded(n: number, quest: number) {
   return quest === 3 && n >= 7 ? 2 : 1;
@@ -131,7 +131,7 @@ export function newGame(hostId: string, hostName: string, tokenHash: string): Ga
 export function validateSetup(n: number, s: Settings): string | null {
   if (n < MIN_PLAYERS) return `Legalább ${MIN_PLAYERS} játékos kell.`;
   if (n > MAX_PLAYERS) return `Legfeljebb ${MAX_PLAYERS} játékos lehet.`;
-  const evil = EVIL_COUNT[n];
+  const evil = EVIL_COUNT[n]!;
   const evilSpecials = 1 + (s.morgana ? 1 : 0) + (s.mordred ? 1 : 0) + (s.oberon ? 1 : 0);
   if (evilSpecials > evil)
     return `${n} játékosnál csak ${evil} gonosz van, de ${evilSpecials} gonosz karakter van kiválasztva.`;
@@ -139,7 +139,7 @@ export function validateSetup(n: number, s: Settings): string | null {
 }
 
 export function buildRoles(n: number, s: Settings): Role[] {
-  const evil = EVIL_COUNT[n];
+  const evil = EVIL_COUNT[n]!;
   const roles: Role[] = ["merlin"];
   if (s.percival) roles.push("percival");
   while (roles.length < n - evil) roles.push("loyal");
@@ -155,7 +155,7 @@ export function shuffle<T>(arr: T[], rand: () => number): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [a[i], a[j]] = [a[j]!, a[i]!];
   }
   return a;
 }
@@ -182,7 +182,7 @@ function startRound(g: Game, rand: () => number): Game {
   const n = g.players.length;
   const roles = shuffle(buildRoles(n, g.settings), rand);
   const roleMap: Record<string, Role> = {};
-  g.players.forEach((p, i) => (roleMap[p.id] = roles[i]));
+  g.players.forEach((p, i) => (roleMap[p.id] = roles[i]!));
   const leader = Math.floor(rand() * n);
   return {
     ...g,
@@ -197,7 +197,7 @@ function startRound(g: Game, rand: () => number): Game {
     votes: {},
     lastVote: null,
     cards: {},
-    ladyHolder: g.settings.lady ? g.players[(leader - 1 + n) % n].id : null,
+    ladyHolder: g.settings.lady ? g.players[(leader - 1 + n) % n]!.id : null,
     ladyHistory: [],
     ladyResults: [],
     winner: null,
@@ -240,8 +240,8 @@ export function applyAction(g: Game, actor: string, action: Action, rand: () => 
     }
     case "propose": {
       if (g.phase !== "team") throw new GameError("Most nem lehet csapatot javasolni.");
-      if (g.players[g.leader].id !== actor) throw new GameError("Csak a vezető javasolhat csapatot.");
-      const size = TEAM_SIZES[n][g.quest];
+      if (g.players[g.leader]!.id !== actor) throw new GameError("Csak a vezető javasolhat csapatot.");
+      const size = TEAM_SIZES[n]![g.quest]!;
       const team = [...new Set(action.team)];
       if (team.length !== size) throw new GameError(`Pontosan ${size} játékost kell választani.`);
       if (!team.every((id) => g.players.some((p) => p.id === id)))
@@ -263,7 +263,7 @@ export function applyAction(g: Game, actor: string, action: Action, rand: () => 
       const approved = yes > n / 2;
       const record: VoteRecord = {
         quest: g.quest,
-        leaderId: g.players[g.leader].id,
+        leaderId: g.players[g.leader]!.id,
         team: g.team,
         votes,
         approved,
@@ -418,9 +418,9 @@ export function viewFor(g: Game, me: string): PlayerView {
     rejections: g.rejections,
     team: g.team,
     votedIds: g.phase === "vote" ? Object.keys(g.votes) : [],
-    myVote: g.phase === "vote" && me in g.votes ? g.votes[me] : null,
+    myVote: g.phase === "vote" ? (g.votes[me] ?? null) : null,
     cardsPlayed: g.phase === "quest" ? Object.keys(g.cards).length : 0,
-    myCard: g.phase === "quest" && me in g.cards ? g.cards[me] : null,
+    myCard: g.phase === "quest" ? (g.cards[me] ?? null) : null,
     lastVote: g.lastVote,
     ladyHolder: g.ladyHolder,
     ladyHistory: g.ladyHistory,

@@ -39,7 +39,7 @@ type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 function randomFloat() {
   const a = new Uint32Array(1);
   crypto.getRandomValues(a);
-  return a[0] / 2 ** 32;
+  return a[0]! / 2 ** 32;
 }
 function randomId(bytes = 24) {
   const a = new Uint8Array(bytes);
@@ -98,7 +98,7 @@ function wrap<T>(fn: () => Promise<T>): Promise<Result<T>> {
     (data) => ({ ok: true as const, data }),
     (e) => {
       if (e instanceof GameError || e instanceof z.ZodError)
-        return { ok: false as const, error: e instanceof z.ZodError ? e.errors[0].message : e.message };
+        return { ok: false as const, error: e instanceof z.ZodError ? (e.errors[0]?.message ?? "Hibás adat.") : e.message };
       console.error(e);
       return { ok: false as const, error: "Váratlan hiba történt." };
     },

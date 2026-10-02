@@ -198,7 +198,7 @@ function Lobby({ view, send, busy }: Props) {
         )}
         {n >= 5 && (
           <p className="mt-3 text-sm text-muted-foreground">
-            {n} játékos: {n - EVIL_COUNT[n]} jó, {EVIL_COUNT[n]} gonosz.
+            {n} játékos: {n - EVIL_COUNT[n]!} jó, {EVIL_COUNT[n]} gonosz.
           </p>
         )}
       </Panel>
@@ -229,7 +229,7 @@ function Panel({ title, children, className }: { title?: string; children: React
 function GameScreen({ view, send, busy }: Props) {
   const [showRole, setShowRole] = useState(false);
   const n = view.players.length;
-  const sizes = TEAM_SIZES[n];
+  const sizes = TEAM_SIZES[n] ?? [];
   const leaderId = view.players[view.leader]?.id;
   const evilMe = view.myRole ? isEvil(view.myRole) : false;
 
@@ -397,7 +397,7 @@ function Phase({ view, send, busy }: Props) {
   const n = view.players.length;
   const leaderId = view.players[view.leader]?.id;
   const iLead = leaderId === view.me;
-  const size = TEAM_SIZES[n][Math.min(view.quest, 4)];
+  const size = TEAM_SIZES[n]?.[Math.min(view.quest, 4)] ?? 0;
 
   if (view.phase === "team")
     return (
@@ -409,7 +409,7 @@ function Phase({ view, send, busy }: Props) {
               onConfirm={(team) => send({ type: "propose", team })} />
           </>
         ) : (
-          <p className="text-muted-foreground">{nameOf(view, leaderId)} választja ki a {size} fős csapatot…</p>
+          <p className="text-muted-foreground">{nameOf(view, leaderId ?? "")} választja ki a {size} fős csapatot…</p>
         )}
       </Panel>
     );
@@ -469,7 +469,7 @@ function Phase({ view, send, busy }: Props) {
             <p className="mb-3">Válassz valakit, akinek megtudod a hűségét.</p>
             <PickPlayers view={view} count={1} busy={busy} label="Megvizsgálás"
               eligible={(id) => id !== view.me && !view.ladyHistory.includes(id)}
-              onConfirm={([t]) => send({ type: "lady", target: t })} />
+              onConfirm={([t]) => send({ type: "lady", target: t! })} />
           </>
         ) : (
           <p className="text-muted-foreground">{nameOf(view, view.ladyHolder ?? "")} vizsgál meg valakit…</p>
@@ -487,7 +487,7 @@ function Phase({ view, send, busy }: Props) {
             <p className="mb-3">Orgyilkos, ki Merlin? Egyetlen esélyed van.</p>
             <PickPlayers view={view} count={1} busy={busy} label="Merénylet"
               eligible={(id) => id !== view.me && !view.knowledge.some((k) => k.id === id)}
-              onConfirm={([t]) => send({ type: "assassinate", target: t })} />
+              onConfirm={([t]) => send({ type: "assassinate", target: t! })} />
           </>
         ) : (
           <p className="text-muted-foreground">Az Orgyilkos megpróbálja kitalálni, ki Merlin…</p>
@@ -506,7 +506,7 @@ function Phase({ view, send, busy }: Props) {
       {view.allRoles && (
         <ul className="mt-4 space-y-1">
           {view.players.map((p) => {
-            const r = view.allRoles![p.id];
+            const r = view.allRoles![p.id] ?? "loyal";
             return (
               <li key={p.id} className="flex justify-between">
                 <span>{p.name}</span>
