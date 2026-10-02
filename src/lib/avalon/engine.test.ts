@@ -16,6 +16,29 @@ describe("engine", () => {
     expect(buildRoles(7, defaultSettings()).filter(isEvil)).toHaveLength(3);
   });
 
+  it("supports Resistance mode without Merlin and Assassin", () => {
+    const s = { ...defaultSettings(), merlin: false, assassin: false };
+    expect(validateSetup(5, s)).toBeNull();
+    const roles = buildRoles(5, s);
+    expect(roles).not.toContain("merlin");
+    expect(roles).not.toContain("assassin");
+    expect(validateSetup(5, { ...s, percival: true })).toMatch(/Merlin/);
+    // 3 successful quests end the game immediately, no assassination phase
+    let g = newGame("p0", "P0", "h0");
+    for (let i = 1; i < 5; i++) g = addPlayer(g, `p${i}`, `P${i}`, `h${i}`);
+    g = applyAction(g, "p0", { type: "settings", settings: s }, rand);
+    g = applyAction(g, "p0", { type: "start" }, rand);
+    for (let q = 0; q < 3; q++) {
+      const size = [2, 3, 2][q]!;
+      const leader = g.players[g.leader]!.id;
+      g = applyAction(g, leader, { type: "propose", team: g.players.slice(0, size).map((p) => p.id) }, rand);
+      for (const p of g.players) if (!(p.id in g.votes)) g = applyAction(g, p.id, { type: "vote", approve: true }, rand);
+      for (const id of g.team) if (!(id in g.cards)) g = applyAction(g, id, { type: "quest", success: true }, rand);
+    }
+    expect(g.phase).toBe("over");
+    expect(g.winner).toBe("good");
+  });
+
   it("rejects illegal moves", () => {
     const g = game(5);
     const leader = g.players[g.leader]!.id;

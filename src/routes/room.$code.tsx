@@ -148,6 +148,8 @@ function Lobby({ view, send, busy }: Props) {
   const n = view.players.length;
   const err = validateSetup(n, view.settings);
   const opts: { key: keyof Settings; label: string; desc: string }[] = [
+    { key: "merlin", label: "Merlin", desc: "Jó: ismeri a gonoszokat (Mordred kivételével)." },
+    { key: "assassin", label: "Orgyilkos", desc: "Gonosz: a végén Merlinre vadászhat." },
     { key: "percival", label: "Percival", desc: "Jó: látja Merlint (és Morganát)." },
     { key: "morgana", label: "Morgana", desc: "Gonosz: Percivalnak Merlinnek tűnik." },
     { key: "mordred", label: "Mordred", desc: "Gonosz: rejtve marad Merlin elől." },
