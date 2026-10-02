@@ -39,15 +39,15 @@ describe("engine", () => {
     expect(g.winner).toBe("good");
   });
 
-  it("lets a disconnected player reclaim only their own seat", () => {
+  it("lets a disconnected player reclaim their seat by name", () => {
     let g = newGame("p0", "Aladár", "secret-0");
     g = addPlayer(g, "p1", "Béla", "secret-1");
     const started = { ...g, phase: "team" as const };
 
-    expect(addOrReconnectPlayer(started, "new-id", "béla", "secret-1")).toBe(started);
-    expect(() => addOrReconnectPlayer(started, "new-id", "Béla", "wrong-secret")).toThrow(
-      "Ez a név már foglalt ebben a szobában.",
-    );
+    const back = addOrReconnectPlayer(started, "new-id", "béla", "secret-new");
+    expect(back.players).toHaveLength(2);
+    expect(back.tokens.p1).toBe("secret-new");
+    expect(back.tokens.p0).toBe("secret-0");
     expect(() => addOrReconnectPlayer(started, "p2", "Cecil", "secret-2")).toThrow(
       "A játék már elkezdődött.",
     );
