@@ -18,7 +18,7 @@ describe("engine", () => {
 
   it("rejects illegal moves", () => {
     const g = game(5);
-    const leader = g.players[g.leader].id;
+    const leader = g.players[g.leader]!.id;
     const other = g.players.find((p) => p.id !== leader)!.id;
     expect(() => applyAction(g, other, { type: "propose", team: ["p0", "p1"] }, rand)).toThrow(GameError);
     expect(() => applyAction(g, leader, { type: "propose", team: ["p0"] }, rand)).toThrow(GameError);
@@ -30,7 +30,7 @@ describe("engine", () => {
   it("good players cannot fail quests; 5 rejections ends game", () => {
     let g = game(5);
     for (let r = 0; r < 5; r++) {
-      const leader = g.players[g.leader].id;
+      const leader = g.players[g.leader]!.id;
       g = applyAction(g, leader, { type: "propose", team: ["p0", "p1"] }, rand);
       for (const p of g.players) g = applyAction(g, p.id, { type: "vote", approve: false }, rand);
     }
@@ -39,7 +39,7 @@ describe("engine", () => {
     let h = game(5);
     const good = h.players.find((p) => !isEvil(h.roles[p.id]))!.id;
     const other = h.players.find((p) => p.id !== good)!.id;
-    h = applyAction(h, h.players[h.leader].id, { type: "propose", team: [good, other] }, rand);
+    h = applyAction(h, h.players[h.leader]!.id, { type: "propose", team: [good, other] }, rand);
     for (const p of h.players) h = applyAction(h, p.id, { type: "vote", approve: true }, rand);
     expect(h.phase).toBe("quest");
     expect(() => applyAction(h, good, { type: "quest", success: false }, rand)).toThrow(GameError);
