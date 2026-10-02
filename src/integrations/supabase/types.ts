@@ -14,7 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      room_private: {
+        Row: {
+          code: string
+          game: Json
+          version: number
+        }
+        Insert: {
+          code: string
+          game: Json
+          version?: number
+        }
+        Update: {
+          code?: string
+          game?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_private_code_fkey"
+            columns: ["code"]
+            isOneToOne: true
+            referencedRelation: "rooms"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          code: string
+          state: Json
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          state?: Json
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          state?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
