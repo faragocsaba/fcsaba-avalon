@@ -182,13 +182,11 @@ export function addPlayer(g: Game, id: string, playerName: string, tokenHash: st
   };
 }
 
-/** Reuses an existing seat only when both its name and secret token match. */
+/** Joining with an existing name takes over that seat (reconnect); the new token replaces the old one. */
 export function addOrReconnectPlayer(g: Game, id: string, playerName: string, tokenHash: string): Game {
   const existing = g.players.find((p) => p.name.toLocaleLowerCase("hu") === playerName.toLocaleLowerCase("hu"));
   if (!existing) return addPlayer(g, id, playerName, tokenHash);
-  if (g.tokens[existing.id] !== tokenHash)
-    throw new GameError("Ez a név már foglalt ebben a szobában.");
-  return g;
+  return { ...g, tokens: { ...g.tokens, [existing.id]: tokenHash } };
 }
 
 function nextLeader(g: Game): Game {
