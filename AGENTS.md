@@ -12,3 +12,4 @@
 - Avalon rules live in the pure `src/lib/avalon/engine.ts` (unit-tested); server functions in `game.functions.ts` are the only writers — why: illegal moves must be impossible regardless of client.
 - Full game state (incl. secrets, hashed player tokens) is stored in the service-role-only `room_private` table; `rooms` holds only a secret-free snapshot used as a realtime refresh trigger — why: no hidden info leaks to clients.
 - Players are identified by a random per-room token in localStorage, not accounts — why: quick join from phones.
+- Finished-game share images are rendered locally from the secret-free `PlayerView` — why: summaries remain downloadable without uploading game data.
