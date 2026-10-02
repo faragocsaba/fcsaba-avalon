@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
+import { Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -18,6 +19,7 @@ import {
   type Settings,
 } from "@/lib/avalon/engine";
 import { loadToken } from "@/lib/avalon/session";
+import { createGameSummary, downloadBlob, renderGameSummaryPng } from "@/lib/avalon/game-summary";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/room/$code")({
@@ -129,7 +131,7 @@ function RoomPage() {
       {view.phase === "lobby" ? (
         <Lobby view={view} send={send} busy={busy} />
       ) : (
-        <GameScreen view={view} send={send} busy={busy} />
+        <GameScreen view={view} send={send} busy={busy} code={code} />
       )}
     </main>
   );
@@ -228,7 +230,7 @@ function Panel({ title, children, className }: { title?: string; children: React
   );
 }
 
-function GameScreen({ view, send, busy }: Props) {
+function GameScreen({ view, send, busy, code }: Props & { code: string }) {
   const [showRole, setShowRole] = useState(false);
   const n = view.players.length;
   const sizes = TEAM_SIZES[n] ?? [];
@@ -303,6 +305,8 @@ function GameScreen({ view, send, busy }: Props) {
 
       <Phase view={view} send={send} busy={busy} />
 
+      {view.phase === "over" && <SummaryActions view={view} code={code} />}
+
       {/* Players */}
       <Panel title="Játékosok">
         <ul className="space-y-1">
@@ -347,6 +351,63 @@ function GameScreen({ view, send, busy }: Props) {
         </ol>
       </Panel>
     </div>
+  );
+}
+
+function SummaryActions({ view, code }: { view: PlayerView; code: string }) {
+  const [creating, setCreating] = useState(false);
+  const filename = `avalon-${code.toLowerCase()}-osszefoglalo.png`;
+
+  const makePng = async () => {
+    const summary = createGameSummary(view, code);
+    if (!summary) throw new Error("Az összefoglaló csak a játék végén készíthető el.");
+    return renderGameSummaryPng(summary);
+  };
+
+  const download = async () => {
+    setCreating(true);
+    try {
+      downloadBlob(await makePng(), filename);
+      toast.success("Az összefoglaló letöltése elindult.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "A kép létrehozása sikertelen.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const share = async () => {
+    setCreating(true);
+    try {
+      const blob = await makePng();
+      const file = new File([blob], filename, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "Avalon – játékösszefoglaló", text: "A befejezett Avalon-játszma eredménye", files: [file] });
+      } else {
+        downloadBlob(blob, filename);
+        toast.info("A megosztás itt nem támogatott, ezért a képet letöltöttük.");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      toast.error(error instanceof Error ? error.message : "A megosztás sikertelen.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <Panel title="Játékösszefoglaló">
+      <div className="grid grid-cols-2 gap-3">
+        <Button variant="secondary" disabled={creating} onClick={download}>
+          <Download aria-hidden="true" />
+          PNG letöltése
+        </Button>
+        <Button disabled={creating} onClick={share}>
+          <Share2 aria-hidden="true" />
+          Megosztás
+        </Button>
+      </div>
+    </Panel>
   );
 }
 
