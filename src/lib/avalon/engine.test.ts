@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPlayer, applyAction, buildRoles, defaultSettings, GameError, isEvil, newGame, validateSetup, type Game } from "./engine";
+import { addOrReconnectPlayer, addPlayer, applyAction, buildRoles, defaultSettings, GameError, isEvil, newGame, validateSetup, type Game } from "./engine";
 
 const rand = () => 0.42;
 function game(n: number): Game {
@@ -37,6 +37,20 @@ describe("engine", () => {
     }
     expect(g.phase).toBe("over");
     expect(g.winner).toBe("good");
+  });
+
+  it("lets a disconnected player reclaim only their own seat", () => {
+    let g = newGame("p0", "Aladár", "secret-0");
+    g = addPlayer(g, "p1", "Béla", "secret-1");
+    const started = { ...g, phase: "team" as const };
+
+    expect(addOrReconnectPlayer(started, "new-id", "béla", "secret-1")).toBe(started);
+    expect(() => addOrReconnectPlayer(started, "new-id", "Béla", "wrong-secret")).toThrow(
+      "Ez a név már foglalt ebben a szobában.",
+    );
+    expect(() => addOrReconnectPlayer(started, "p2", "Cecil", "secret-2")).toThrow(
+      "A játék már elkezdődött.",
+    );
   });
 
   it("rejects illegal moves", () => {

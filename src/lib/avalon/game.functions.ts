@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
   addPlayer,
+  addOrReconnectPlayer,
   applyAction,
   GameError,
   newGame,
@@ -129,15 +130,17 @@ export const createRoom = createServerFn({ method: "POST" })
   );
 
 export const joinRoom = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ code: z.string(), name: z.string() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ code: z.string(), name: z.string(), token: tokenSchema.optional() }).parse(d),
+  )
   .handler(({ data }) =>
     wrap(async () => {
       const code = codeSchema.parse(data.code);
       const name = nameSchema.parse(data.name);
-      const token = randomId();
+      const token = data.token ?? randomId();
       const h = await hash(token);
       const id = randomId(8);
-      await mutate(code, (g) => addPlayer(g, id, name, h));
+      await mutate(code, (g) => addOrReconnectPlayer(g, id, name, h));
       return { code, token };
     }),
   );
