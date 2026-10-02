@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createRoom, joinRoom } from "@/lib/avalon/game.functions";
-import { loadName, saveName, saveToken } from "@/lib/avalon/session";
+import { loadName, loadToken, saveName, saveToken } from "@/lib/avalon/session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,7 +34,10 @@ function Home() {
   async function run(kind: "create" | "join") {
     setBusy(true);
     try {
-      const res = kind === "create" ? await create({ data: { name } }) : await join({ data: { name, code } });
+      const normalizedCode = code.trim().toUpperCase();
+      const res = kind === "create"
+        ? await create({ data: { name } })
+        : await join({ data: { name, code: normalizedCode, token: loadToken(normalizedCode) ?? undefined } });
       if (!res.ok) {
         toast.error(res.error);
         return;
