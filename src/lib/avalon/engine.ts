@@ -136,10 +136,10 @@ export function validateSetup(n: number, s: Settings): string | null {
   if (n < MIN_PLAYERS) return `Legalább ${MIN_PLAYERS} játékos kell.`;
   if (n > MAX_PLAYERS) return `Legfeljebb ${MAX_PLAYERS} játékos lehet.`;
   const evil = EVIL_COUNT[n]!;
-  const evilSpecials = (s.assassin ? 1 : 0) + (s.morgana ? 1 : 0) + (s.mordred ? 1 : 0) + (s.oberon ? 1 : 0);
+  const evilSpecials = (s.assassin !== false ? 1 : 0) + (s.morgana ? 1 : 0) + (s.mordred ? 1 : 0) + (s.oberon ? 1 : 0);
   if (evilSpecials > evil)
     return `${n} játékosnál csak ${evil} gonosz van, de ${evilSpecials} gonosz karakter van kiválasztva.`;
-  if (!s.merlin && (s.percival || s.morgana))
+  if (s.merlin === false && (s.percival || s.morgana))
     return "Percival és Morgana csak Merlinnel együtt játszható.";
   return null;
 }
@@ -147,11 +147,11 @@ export function validateSetup(n: number, s: Settings): string | null {
 export function buildRoles(n: number, s: Settings): Role[] {
   const evil = EVIL_COUNT[n]!;
   const roles: Role[] = [];
-  if (s.merlin) roles.push("merlin");
+  if (s.merlin !== false) roles.push("merlin");
   if (s.percival) roles.push("percival");
   while (roles.length < n - evil) roles.push("loyal");
   const evilRoles: Role[] = [];
-  if (s.assassin) evilRoles.push("assassin");
+  if (s.assassin !== false) evilRoles.push("assassin");
   if (s.morgana) evilRoles.push("morgana");
   if (s.mordred) evilRoles.push("mordred");
   if (s.oberon) evilRoles.push("oberon");
@@ -314,7 +314,7 @@ export function applyAction(g: Game, actor: string, action: Action, rand: () => 
       if (evilWins >= 3)
         return { ...base, phase: "over", winner: "evil", reason: "Három küldetés elbukott." };
       if (goodWins >= 3) {
-        const canAssassinate = g.settings.merlin && g.settings.assassin;
+        const canAssassinate = g.settings.merlin !== false && g.settings.assassin !== false;
         if (!canAssassinate)
           return { ...base, phase: "over", winner: "good", reason: "Három küldetés sikeres." };
         return { ...base, phase: "assassin" };
